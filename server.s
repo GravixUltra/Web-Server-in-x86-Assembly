@@ -27,7 +27,7 @@ mov rbx, rax             ; save listening socket fd in rbx
 sub rsp, 16
 mov word ptr [rsp], 2         ; sin_family = AF_INET
 
-; NOTE: network byte order (big-endian). You store 0x5000 so in memory
+; NOTE: network byte order (big-endian). I store 0x5000 so in memory
 ; it becomes bytes 00 50 -> port 80.
 mov word ptr [rsp+2], 0x5000  ; sin_port = htons(80) effectively
 
@@ -119,7 +119,7 @@ mov r13, rax             ; r13 = request length read
 
 ; =========================
 ; Decide GET vs POST by checking first 4 bytes
-; You compare against 0x54534F50 which is "POST" in little-endian:
+; I compare against 0x54534F50 which is "POST" in little-endian:
 ; bytes: 50 4F 53 54 => 'P''O''S''T'
 ; =========================
 cmp dword ptr [rsp], 0x54534F50
@@ -131,7 +131,7 @@ jmp is_get
 ; Parse requested path
 ; For "POST /path HTTP/1.1", path begins at buffer+5 (after "POST ")
 ; For "GET /path HTTP/1.1",  path begins at buffer+4 (after "GET ")
-; You then scan until the next space and null-terminate it.
+; Finally, I scan until the next space and null-terminate it.
 ; =========================
 is_post:
 lea rsi, [rsp+5]         ; rsi = pointer to path
@@ -254,9 +254,9 @@ syscall
 
 ; =========================
 ; HTTP response:
-; You build "HTTP/1.0 200 OK\r\n\r\n" on stack and send it,
+; I put "HTTP/1.0 200 OK\r\n\r\n" on stack and send it,
 ; then send r14 buffer content (file data for GET, or original request for POST
-; depending on what you left in r14/r13).
+; depending on what is left in r14/r13).
 ; =========================
 response:
 sub rsp, 19
@@ -292,8 +292,6 @@ syscall
 ; write(client_fd, body, r13)
 ; For GET: r14 has file contents, r13 is file size read
 ; For POST: r14 still has request buffer, r13 is original request size
-; (but you jump to response after writing the POST body to file without
-; updating r13 to body length, so this echoes the request bytes read)
 mov rax, 1                     ; __NR_write
 mov rdi, r15
 mov rsi, r14
@@ -333,9 +331,8 @@ mov rax, 3                     ; __NR_close
 syscall
 jmp server_loop
 
-
-; Unreachable in normal flow (server_loop never ends),
-; but this is an exit(0) sequence:
+; exit(0)
 mov rax, 60
 mov rdi, 0
 syscall
+
