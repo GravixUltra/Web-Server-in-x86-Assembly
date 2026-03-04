@@ -225,8 +225,7 @@ pop rdi
 mov rax, 1                     ; __NR_write
 syscall
 
-; close(file_fd)  (NOTE: you currently close r12 later too; in POST path you
-; close via r12 afterwards - just be aware of double-close possibility.)
+; close(file_fd)  
 mov rax, 3                     ; __NR_close
 mov rdi, r12
 syscall
@@ -335,4 +334,5 @@ jmp server_loop
 mov rax, 60
 mov rdi, 0
 syscall
+
 
